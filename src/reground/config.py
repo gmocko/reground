@@ -28,12 +28,20 @@ class GroundingConfig:
             rather than a guess (AC5, R3) — the core defence of the thesis.
         citation_window: How many sentences on each side of the aligned span are
             searched for the nearest ``[N]`` marker when mapping provenance (AC6).
+        max_unsupported_tokens: The unsupported-residual guard. Maximum number
+            of a fragment's content tokens that may be absent from *every*
+            source in the curated set before the fragment is refused outright.
+            Catches "true head + fabricated tail" compounds that raw token
+            overlap lets through, while tolerating the small inflectional
+            residue of an honest paraphrase ("converted" vs "converts").
+            Second registration wave — see ``benchmark/README.md``.
     """
 
     min_shared_tokens: int = 4
     jaccard_threshold: float = 0.5
     margin: float = 0.1
     citation_window: int = 1
+    max_unsupported_tokens: int = 2
 
 
 #: The default, pre-registered configuration used by :func:`reground.ground`.

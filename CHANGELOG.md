@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [SemVer](https://semver.org/).
 
+## [0.2.0] — 2026-06-05
+
+Safety semantics: an adversarial review found two ways a *confident* result
+could outrun its evidence; both are closed deterministically, without changing
+any verdict in the published 25-case matrix (verified before freezing the new
+threshold — see `benchmark/README.md`, "Second registration wave").
+
+### Added
+
+- **Unsupported-residual guard** (`max_unsupported_tokens = 2`,
+  pre-registered): a claim fragment with more than 2 content tokens absent
+  from *every* source is refused — closes the "true head + fabricated tail"
+  hole. The residual is measured against the whole curated set, so
+  multi-source synthesis (AC9) still grounds.
+- **Within-source margin check**: two near-equal sentences inside the winning
+  source must resolve to the *same* citation URL, else `ambiguous` — closes
+  the confident-wrong-URL hole the cross-source margin (AC5) cannot see.
+  Sentences tying onto one URL still ground (recall preserved).
+- Two new benchmark categories (4 cases): `compound unsupported tail` and
+  `ambiguous same-source match` — the matrix is now 29 cases / 13 categories
+  (recall 13/16, false-attribution 0/13, safe-refusal 13/13).
+- `tests/test_limits.py`: documented limits encoded as **strict xfails**
+  (single-source semantic reversal; `...`-fragment semantics; a ≤ 2-token
+  fabricated tail) — if a limit is ever outgrown, the build breaks until the
+  README "Limits" section is consciously updated.
+
 ## [0.1.0] — 2026-06-05
 
 First public release.

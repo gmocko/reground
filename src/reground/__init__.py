@@ -26,7 +26,7 @@ from reground.ports import EntailmentGate
 
 # Single source of truth for the package version — pyproject.toml reads it
 # back via [tool.setuptools.dynamic].
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "DEFAULT_CONFIG",

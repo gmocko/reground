@@ -24,12 +24,36 @@ NLI gate (DL-6), **not** loosening these (handoff §7).
 bounded fuzzy fallback that was ultimately never implemented; it has been
 removed from `GroundingConfig` rather than shipped as a dead parameter.)
 
+## Second registration wave (2026-06-05)
+
+An adversarial review found two ways a *confident* result could outrun its
+evidence: a claim with a true head and a fabricated tail stayed `grounded`
+(token overlap tolerates a tail up to roughly the size of the intersection),
+and two near-equal sentences *inside one source* with different citations
+escaped the cross-source margin rule entirely — a confident wrong URL. Two
+deterministic rules close this:
+
+| Rule | Value | Rationale |
+|------|-------|-----------|
+| `max_unsupported_tokens` | `2` | Unsupported-residual guard: a fragment with more than 2 content tokens absent from **every** source is refused. Tolerates the small inflectional residue of honest paraphrase ("converted" vs "converts"); a fabricated clause is almost always ≥ 3 content tokens. Residual is measured against the whole curated set, so multi-source synthesis (AC9) is not punished. |
+| within-source margin | reuses `margin = 0.1` | When the best and second-best sentence of the winning source score within `margin`, both must resolve to the **same** citation URL; otherwise → `ambiguous`. |
+
+Honest constraints, stated openly: these values were chosen from design
+reasoning under one explicit constraint — **do not change any verdict in the
+already-published 25-case matrix** (verified before freezing) — and were frozen
+**before** the new adversarial categories below (`compound unsupported tail`,
+`ambiguous same-source match`) were authored or scored. So for the original 25
+cases the numbers measure the system as previously configured; for the new
+cases they measure thresholds frozen before case authoring. The known residue
+(a fabricated tail of ≤ 2 content tokens still rides through) is encoded as a
+strict `xfail` in [`tests/test_limits.py`](../tests/test_limits.py).
+
 ## Case schema (frozen — spec §4)
 
 | Field                | Type                                          | Meaning |
 |----------------------|-----------------------------------------------|---------|
 | `case_id`            | `str`                                         | Stable, unique id |
-| `category`           | `str`                                         | One of the 11 categories (spec §11) |
+| `category`           | `str`                                         | One of the 13 categories (see below) |
 | `sources`            | `Source[]`                                    | The **curated set** the claim is grounded against |
 | `model_quote`        | `str`                                         | The (possibly paraphrased / fragment-combined) quote to ground |
 | `expected_source_id` | `str \| null`                                 | Correct source id, or `null` when a refusal is expected |
@@ -55,12 +79,19 @@ removed from `GroundingConfig` rather than shipped as a dead parameter.)
 This schema maps 1:1 onto the runtime contracts in
 [`src/reground/contracts.py`](../src/reground/contracts.py).
 
-## Categories (spec §11)
+## Categories
+
+The original 11 (spec §11):
 
 `exact quote` · `minor paraphrase` · `reordered words` ·
 `fragment combination (...)` · `synonym-heavy paraphrase` · `fabricated quote` ·
 `ambiguous two-source match` · `citation marker far from quote` ·
 `multiple citations in window` · `near-miss distractor` · `multi-source synthesis`
+
+Added with the second registration wave (cases authored *after* the wave-2
+thresholds were frozen):
+
+`compound unsupported tail` · `ambiguous same-source match`
 
 The current file holds 25 cases across the 11 categories (the schema was locked
 on 3 seed cases first, then the full matrix was authored against it). The

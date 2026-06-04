@@ -123,9 +123,12 @@ re-grounds a chain's final output against the curated set it carried forward.
 
 The only numbers that represent the tool come from
 [`benchmark/run_benchmark.py`](benchmark/run_benchmark.py) (offline, reproducible
-in CI on every push). 25 neutral synthetic cases across 11 categories, scored on
-the pre-registered thresholds. Each metric has an explicit denominator (so a
-"~0% false-attribution bought by refusing everything" cannot hide):
+in CI on every push — and *enforced* per case by
+[`tests/test_benchmark.py`](tests/test_benchmark.py)). 29 neutral synthetic
+cases across 13 categories, scored on the pre-registered thresholds (two
+registration waves — see [`benchmark/README.md`](benchmark/README.md)). Each
+metric has an explicit denominator (so a "~0% false-attribution bought by
+refusing everything" cannot hide):
 
 | Category | recall | false-attr | safe-refusal | over-refusal |
 |---|---|---|---|---|
@@ -134,13 +137,15 @@ the pre-registered thresholds. Each metric has an explicit denominator (so a
 | reordered words | 2/2 | 0/2 | – | 0/2 |
 | fragment combination (`...`) | 2/2 | 0/2 | – | 0/2 |
 | multi-source synthesis | 2/2 | 0/2 | – | 0/2 |
+| ambiguous same-source match | 1/1 | 0/1 | 1/1 | 0/1 |
 | fabricated quote | – | – | 3/3 | – |
+| compound unsupported tail | – | – | 2/2 | – |
 | ambiguous two-source match | – | – | 2/2 | – |
 | citation marker far from quote | – | – | 2/2 | – |
 | multiple citations in window | – | – | 2/2 | – |
 | synonym-heavy paraphrase | 0/2 | – | – | 2/2 |
 | near-miss distractor | 0/1 | – | 1/1 | 1/1 |
-| **TOTAL** | **80.0%** (12/15) | **0.0%** (0/12) | **100%** (10/10) | **20.0%** (3/15) |
+| **TOTAL** | **81.2%** (13/16) | **0.0%** (0/13) | **100%** (13/13) | **18.8%** (3/16) |
 
 - `recall` = grounded to the **correct** source / cases expecting `grounded`
 - `false-attr` = grounded to the **wrong** source / cases the system marked grounded
@@ -161,6 +166,15 @@ benchmark settled empirically:
   Over-refusal is isolated to synonym-heavy paraphrase — so the gate stays a
   documented *future* lever for teams that need that recall, not a shipped
   default.
+- **Second-wave guards: two holes closed without touching the matrix.** An
+  adversarial review found a true-head + fabricated-tail compound staying
+  `grounded`, and two near-equal sentences *inside one source* escaping the
+  margin rule (a confident wrong URL). The **unsupported-residual guard**
+  (tokens absent from *every* source, measured set-wide so multi-source
+  synthesis is not punished) and the **within-source margin** (near-equal
+  sentences must resolve to one citation URL) close both — pre-registered
+  before the two new categories were authored, with all 25 original verdicts
+  unchanged ([`benchmark/README.md`](benchmark/README.md)).
 
 Reproduce locally:
 
@@ -194,9 +208,18 @@ figures that represent the tool.)
   photosynthesis source). This is the (future) NLI gate's job; not shipped in
   this release.
 - **Semantic reversal is not detected by the core.** Token overlap treats "A
-  causes B" and "B causes A" as near-identical. The margin rule catches the
-  *two-source* version of this (→ ambiguous); single-source reversal is out of
-  scope for a deterministic matcher and belongs to the entailment gate.
+  causes B" and "B causes A" as near-identical. The margin rules catch the
+  *two-source* and *two-sentence* versions of this (→ ambiguous); reversal
+  against a single matching sentence is out of scope for a deterministic
+  matcher and belongs to the (future) entailment gate.
+- **A fabricated tail of ≤ 2 content tokens can ride through.** The
+  unsupported-residual guard refuses fragments with more than
+  `max_unsupported_tokens` (2) content tokens absent from every source — the
+  tolerance that admits honest inflectional residue ("converted" vs
+  "converts") also admits a very short fabricated tail. This and the other
+  limits here are encoded as **strict `xfail`s** in
+  [`tests/test_limits.py`](tests/test_limits.py): if one ever starts passing,
+  the build breaks until this section is consciously updated.
 - **Provenance uses a bounded window.** A citation more than `citation_window`
   sentences from the aligned span is treated as "too far" → unmapped (a safe
   refusal of attribution), by design.
@@ -225,6 +248,12 @@ Spec-first, test-defended, numbers-last:
    with explicit denominators, per category.
 5. **Packaging + CI** — zero-dep core; `ruff` + `mypy --strict` + `pytest` + the
    benchmark re-run on every push.
+6. **Adversarial review + second wave** — two confident-wrong-result holes
+   (fabricated tail riding on a true head; a within-source citation collision)
+   were found by red-teaming the thesis and closed with two deterministic
+   guards, pre-registered before the new benchmark categories were authored
+   ([`benchmark/README.md`](benchmark/README.md)). Documented limits became
+   strict `xfail`s ([`tests/test_limits.py`](tests/test_limits.py)).
 
 ## License
 

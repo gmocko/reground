@@ -55,6 +55,35 @@ def ground(
     source = _source_by_id(sources, alignment.best.source_id)
     provenance = map_provenance(source, alignment.best.sentence_index, config)
 
+    # Within-source margin: the cross-source margin rule (AC5) cannot see two
+    # near-equal sentences inside ONE source, yet their citations may differ —
+    # exactly the confident-wrong-URL failure the thesis forbids. When the
+    # runner-up sentence sits within config.margin, both sentences must resolve
+    # to the SAME citation URL; otherwise the attribution is ambiguous.
+    runner = alignment.runner_up
+    if provenance.mapped and runner is not None and alignment.score - runner.score < config.margin:
+        runner_provenance = map_provenance(source, runner.sentence_index, config)
+        if not runner_provenance.mapped or runner_provenance.source_url != provenance.source_url:
+            within_margin = alignment.score - runner.score
+            return GroundingResult(
+                claim_id=claim.claim_id,
+                original_quote=claim.quote,
+                grounded_quote=None,
+                source_id=None,
+                source_url=None,
+                status="ambiguous",
+                method=alignment.method,
+                score=alignment.score,
+                margin=within_margin,
+                reason=(
+                    f"two sentences within margin inside {alignment.best.source_id}: "
+                    f"sentence {alignment.best.sentence_index} ({alignment.score:.2f}) vs "
+                    f"sentence {runner.sentence_index} ({runner.score:.2f}, margin "
+                    f"{within_margin:.2f} < {config.margin:.2f}) map to different or "
+                    f"unconfident citations; attribution refused"
+                ),
+            )
+
     if not provenance.mapped:
         # Weakest link: grounded text, unmapped provenance -> not "grounded".
         # We refuse attribution rather than emit a URL we are unsure of (AC6).
