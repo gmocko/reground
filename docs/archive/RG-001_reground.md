@@ -8,6 +8,16 @@ updated_date: "2026-06-02"
 
 # RG-001: reground — Deterministic Provenance Reconstruction with Safe Refusal
 
+> **Historical spec (archived).** This is the pre-implementation design
+> document, kept verbatim as a record of what was planned. The shipped
+> implementation diverged in places — notably: `nli_gate.py` was **not** built
+> (only the `EntailmentGate` port in `src/reground/ports.py`; there is no
+> `[nli]` extra), the bounded fuzzy citation fallback was dropped (its
+> `fuzzy_citation_threshold` knob was removed from `GroundingConfig`), and CI
+> *enforces* the benchmark via `tests/test_benchmark.py` rather than only
+> regenerating it. Where this document and the code disagree, the code and
+> `CHANGELOG.md` win.
+
 > **Thesis:** *Citation provenance does not survive a chain of LLM agents. Reconstruct it deterministically at the end — align each final claim to a verbatim span within the small, already-curated source set, or refuse — never a confident wrong citation.*
 
 ## 1. Problem Statement

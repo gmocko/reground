@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reground"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Deterministic provenance reconstruction with safe refusal"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -46,7 +46,12 @@ dev = [
     "mypy>=1.10",
     "ruff>=0.5",
 ]
-nli = []
+# A future `nli` extra will ship the optional EntailmentGate implementation
+# (see src/reground/ports.py). It is deliberately NOT declared until it
+# installs something real — `pip install reground[nli]` must never be a no-op.
+
+[tool.setuptools.dynamic]
+version = { attr = "reground.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -57,7 +62,9 @@ reground = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+# "benchmark" exposes run_benchmark.py to tests/test_benchmark.py (the
+# regression gate reuses the benchmark's own loader — no schema drift).
+pythonpath = ["src", "benchmark"]
 addopts = "-q"
 
 [tool.ruff]

@@ -110,11 +110,14 @@ re-grounds a chain's final output against the curated set it carried forward.
   the benchmark was scored ([`benchmark/README.md`](benchmark/README.md)) — the
   numbers measure the system as configured, not a configuration reverse-fitted
   to the cases.
-- **Deterministic core; optional NLI gate.** An entailment gate (behind
-  `pip install reground[nli]`) can recover recall on lexically-divergent claims.
-  It is **off by default** and never imported by the core path — adding a model
-  to the core would forfeit the determinism that is the whole point. Whether it
-  is needed is an empirical question the benchmark answers (see below).
+- **Deterministic core; NLI gate is a defined port, not yet shipped.** An
+  entailment gate could recover recall on lexically-divergent claims. Its
+  boundary interface ([`EntailmentGate`](src/reground/ports.py)) is defined so
+  the core never depends on an implementation — but **no implementation ships
+  in this release** (there is deliberately no `[nli]` extra yet: installing one
+  must never be a no-op). Adding a model to the core would forfeit the
+  determinism that is the whole point. Whether the gate is worth building is an
+  empirical question the benchmark answers (see below).
 
 ## Proof — the benchmark
 
@@ -146,17 +149,18 @@ the pre-registered thresholds. Each metric has an explicit denominator (so a
 
 **Headline: 0% false attribution.** All over-refusal is concentrated in exactly
 two places — *synonym-heavy paraphrase* and one *order-collision* — which is the
-lexical-divergence territory the optional NLI gate is designed for. Two
-questions the benchmark settled empirically:
+lexical-divergence territory a future NLI gate would target. Two questions the
+benchmark settled empirically:
 
 - **Order-guard: not needed (YAGNI).** The order-collision case ("the dog chased
   the cat" vs "the cat chased the dog", same token set) is refused as
   `ambiguous` by the margin rule — a *safe refusal*, not a wrong attribution. So
   no `difflib` tie-break was added.
-- **NLI gate: stays off by default.** The deterministic floor holds (0%
-  false-attribution; 100% recall on exact / paraphrase / reorder / fragment /
-  multi-source). Over-refusal is isolated to synonym-heavy paraphrase — the gate
-  remains the documented lever for teams that need that recall, not a default.
+- **NLI gate: not built.** The deterministic floor holds (0% false-attribution;
+  100% recall on exact / paraphrase / reorder / fragment / multi-source).
+  Over-refusal is isolated to synonym-heavy paraphrase — so the gate stays a
+  documented *future* lever for teams that need that recall, not a shipped
+  default.
 
 Reproduce locally:
 
@@ -178,16 +182,17 @@ provenance note. `run_demo.py` grounds them offline on every CI run.
 Result: **0 false attributions, 1 grounded, 9 safe refusals.** Two honest
 readings: the safety floor holds on real inputs exactly as on synthetic ones —
 and a real model's free paraphrase is synonym-heavy *by default*, not as an
-edge case. Real-world recall therefore sits squarely in the optional NLI
-gate's territory; these fixtures are the strongest empirical argument this
-project produced for that lever. (The benchmark numbers above remain the only
+edge case. Real-world recall therefore sits squarely in the future NLI gate's
+territory; these fixtures are the strongest empirical argument this project
+produced for building that lever. (The benchmark numbers above remain the only
 figures that represent the tool.)
 
 ## Limits (honest)
 
 - **Synonym-heavy paraphrase over-refuses.** Token overlap cannot bridge a
   purely lexical gap (e.g. "plants transform sunlight into stored fuel" vs a
-  photosynthesis source). This is the NLI gate's job; off by default.
+  photosynthesis source). This is the (future) NLI gate's job; not shipped in
+  this release.
 - **Semantic reversal is not detected by the core.** Token overlap treats "A
   causes B" and "B causes A" as near-identical. The margin rule catches the
   *two-source* version of this (→ ambiguous); single-source reversal is out of

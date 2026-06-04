@@ -41,6 +41,12 @@ class SourceDocument:
 
     Note: ``citations`` is a ``tuple`` (not ``list`` as written in spec §4) so the
     value object is genuinely immutable under ``frozen=True``.
+
+    Note: ``url`` is caller-side metadata only. The provenance returned by
+    :func:`reground.ground` comes *exclusively* from the :attr:`Citation.url`
+    of a confidently-mapped inline ``[N]`` marker — the core never falls back
+    to this document-level URL (a span without a mappable marker is a refusal,
+    not an attribution to the whole document).
     """
 
     source_id: str

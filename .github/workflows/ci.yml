@@ -32,10 +32,12 @@ jobs:
       - name: Type-check (mypy --strict)
         run: mypy
 
-      - name: Tests
+      # tests/test_benchmark.py enforces the benchmark per case (0 false
+      # attributions, pinned over-refusals) — a regression fails THIS step.
+      - name: Tests (incl. benchmark regression gate)
         run: pytest
 
-      - name: Regenerate benchmark matrix (offline, reproducible)
+      - name: Run benchmark (print the matrix, offline)
         run: python benchmark/run_benchmark.py
 
       - name: Demo runs offline with zero deps (AC8)

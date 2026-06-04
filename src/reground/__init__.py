@@ -24,7 +24,9 @@ from reground.exceptions import (
 from reground.harness import ground
 from reground.ports import EntailmentGate
 
-__version__ = "0.0.0"
+# Single source of truth for the package version — pyproject.toml reads it
+# back via [tool.setuptools.dynamic].
+__version__ = "0.1.0"
 
 __all__ = [
     "DEFAULT_CONFIG",

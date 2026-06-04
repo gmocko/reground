@@ -27,6 +27,10 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+# Note: these are merely the *current* defaults for new harvests. The frozen
+# fixtures in ``real_model_outputs.jsonl`` were harvested with an explicit
+# ``--model claude-haiku-4-5`` — the authoritative record of what produced
+# them is the ``provenance`` field inside that file, not this dict.
 DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-4-6",
     "openai": "gpt-4o-mini",

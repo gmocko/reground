@@ -1,5 +1,10 @@
 # reground (RG-001) — Engineer Hand-off Brief
 
+> **Historical document (archived).** Pre-implementation orientation brief,
+> kept verbatim. See the banner in `RG-001_reground.md` for where the shipped
+> code diverged; where this brief and the code disagree, the code and
+> `CHANGELOG.md` win.
+
 > **Source of truth:** `docs/RG-001_reground.md`. This brief does not replace it — it's the orientation layer: what is locked, what the benchmark decides, where the landmines are, and the bar I (the SA) will review against. When this brief and the spec disagree, the spec wins; tell me so I fix the spec.
 
 ---

@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [SemVer](https://semver.org/).
 
-## [0.1.0] — 2026-06-04
+## [0.1.0] — 2026-06-05
 
 First public release.
 
@@ -28,5 +28,27 @@ First public release.
   (0 false attributions, 1 grounded, 9 safe refusals).
 - Zero third-party runtime dependencies (stdlib only); `py.typed` shipped
   (`mypy --strict` clean).
-- CI: ruff + mypy --strict + pytest + benchmark regeneration + offline demo,
-  on Python 3.11–3.13.
+- CI: ruff + mypy --strict + pytest (incl. the benchmark regression gate) +
+  benchmark matrix printout + offline demo, on Python 3.11–3.13.
+- Benchmark regression gate (`tests/test_benchmark.py`): the matrix is
+  *asserted* per case in CI, not just printed — a false attribution or a new
+  over-refusal fails the build; the known over-refusals are pinned.
+- `CONTRIBUTING.md` with the exact check commands CI runs and the ground rules
+  (pre-registered thresholds, pinned over-refusals, refusal-as-value).
+
+### Changed (pre-publication release hardening)
+
+- Package version is single-sourced from `reground.__version__` (pyproject
+  reads it back via `[tool.setuptools.dynamic]`).
+- Removed the dead `fuzzy_citation_threshold` config knob — the bounded fuzzy
+  fallback it was pre-registered for was never implemented (noted in
+  `benchmark/README.md`).
+- Removed the empty `[nli]` extra; README now states the `EntailmentGate` port
+  is defined but **no NLI implementation ships** in this release.
+- Documented that provenance comes exclusively from `Citation.url` of a
+  confidently-mapped inline `[N]` marker; `SourceDocument.url` is caller-side
+  metadata the core never returns.
+- `benchmark/README.md` updated to the authored 25-case matrix (stale "3 seed
+  cases" note removed).
+- Pre-implementation spec documents moved to `docs/archive/` with a
+  "historical, kept verbatim" banner noting where the shipped code diverged.
