@@ -30,6 +30,22 @@ threshold — see `benchmark/README.md`, "Second registration wave").
   fabricated tail) — if a limit is ever outgrown, the build breaks until the
   README "Limits" section is consciously updated.
 
+### Documentation (scope clarification)
+
+- The promise is narrowed to what the mechanism does: **deterministic
+  citation-span re-grounding**, not whole-claim fact-checking. The README
+  states the guarantee precisely (a URL only when a span *and* a marker are
+  both confidently mapped; the verdict covers `grounded_quote`, never the
+  whole `original_quote`) and gains a "What this does not prove" section
+  (fragment semantics, no entailment, no multi-hop verification, no source
+  vetting).
+- New documented limits: the ASCII/English-only tokenizer (non-English
+  *paraphrase* alignment is out of scope; exact quotes still match) and the
+  deliberately naive sentence splitter (abbreviations shift the
+  sentence-indexed citation window).
+- `examples/run_demo.py` gains a fourth demo showing the AC3 fragment
+  semantics explicitly (`grounded_quote` vs `original_quote`).
+
 ## [0.1.0] — 2026-06-05
 
 First public release.

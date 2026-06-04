@@ -6,7 +6,9 @@ Runs fully offline, no API key, zero third-party dependencies (AC8):
 
 Shows the three outcomes the contract guarantees — grounded, ungrounded
 (fabricated), and ambiguous (two near-equal sources) — so the safe-refusal
-behaviour is visible, not just the happy path. The source set mirrors
+behaviour is visible, not just the happy path. A fourth demo shows the AC3
+fragment semantics explicitly: the verdict covers ``grounded_quote`` (the
+verbatim span), never the whole ``original_quote``. The source set mirrors
 ``sample_corpus.md``.
 
 If ``real_model_outputs.jsonl`` is present (frozen once by
@@ -87,6 +89,15 @@ DEMOS: list[tuple[str, Claim, list[SourceDocument]]] = [
         "two equal sources -> ambiguous (safe refusal)",
         Claim("c3", "Honeybees communicate the location of food using a waggle dance"),
         AMBIGUOUS_SET,
+    ),
+    (
+        # AC3: a '...'-joined quote is graded by its strongest fragment. The
+        # verdict covers grounded_quote (the verbatim span), NOT the whole
+        # original_quote — the second fragment here is pure fabrication and
+        # stays unverified. See README "What this does not prove".
+        "ellipsis fragments -> grounded SPAN only (not the whole input)",
+        Claim("c4", "Photosynthesis converts light energy ... unicorns cure ancient diseases"),
+        CURATED_SET,
     ),
 ]
 

@@ -1,4 +1,9 @@
-"""reground — deterministic provenance reconstruction with safe refusal.
+"""reground — deterministic citation-span re-grounding with safe refusal.
+
+Re-attaches provenance to the best-supported span of a claim, or refuses.
+A ``grounded`` verdict covers the returned ``grounded_quote`` (a verbatim
+source span), never the whole input claim — see README
+"What this does not prove".
 
 Public API:
 

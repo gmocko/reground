@@ -93,9 +93,9 @@ thresholds were frozen):
 
 `compound unsupported tail` · `ambiguous same-source match`
 
-The current file holds 25 cases across the 11 categories (the schema was locked
-on 3 seed cases first, then the full matrix was authored against it). The
-matrix is enforced two ways: `benchmark/run_benchmark.py` prints it, and
+The current file holds 29 cases across 13 categories: the original 25-case /
+11-category matrix plus 4 second-wave adversarial cases across 2 new categories.
+The matrix is enforced two ways: `benchmark/run_benchmark.py` prints it, and
 [`tests/test_benchmark.py`](../tests/test_benchmark.py) asserts it per case in
 CI — a false attribution or a new over-refusal fails the build, it cannot pass
 as a silently different printout.

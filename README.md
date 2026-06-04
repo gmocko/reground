@@ -5,7 +5,11 @@
 [![mypy --strict](https://img.shields.io/badge/types-mypy%20--strict-blue)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Deterministic provenance reconstruction with safe refusal.**
+**Deterministic citation-span re-grounding with safe refusal.**
+
+It re-attaches provenance to the best-supported **span** of a claim — or
+refuses. It is *not* a fact-checker: it does not prove a whole sentence true
+(see [What this does not prove](#what-this-does-not-prove)).
 
 > Citation provenance does not survive a chain of LLM agents. Reconstruct it
 > deterministically at the end — align each final claim to a verbatim span
@@ -28,6 +32,8 @@ result = ground(Claim("c1", "light energy is converted into chemical energy by p
 result.status        # "grounded"
 result.grounded_quote # "Photosynthesis converts light energy into chemical energy."
 result.source_url    # "https://example.com/photosynthesis"
+# the verdict covers grounded_quote (the verbatim span it returns) — not
+# necessarily every word of the input claim; see "What this does not prove"
 ```
 
 ```bash
@@ -65,9 +71,13 @@ retrieval step already selected, and returns one `GroundingResult` that is
   nearest inline `[N]` citation), or
 - a **safe refusal** — `ungrounded` or `ambiguous`, with `source_url=None`.
 
-It never emits a confident wrong attribution. Refusal is a first-class return
-value, not an exception. The core runs **offline with zero third-party
-dependencies**.
+The guarantee, stated precisely: **a URL is emitted only when a verbatim
+source span *and* an inline citation marker are both confidently and
+unambiguously mapped** — and a `grounded` verdict covers the returned
+`grounded_quote`, not necessarily every word of the input claim (see
+[What this does not prove](#what-this-does-not-prove)). Refusal is a
+first-class return value, not an exception. The core runs **offline with zero
+third-party dependencies**.
 
 The small candidate set is what makes a deterministic matcher viable: with 5–15
 curated sources, the token-overlap over-matching that sinks open-corpus
@@ -201,6 +211,30 @@ territory; these fixtures are the strongest empirical argument this project
 produced for building that lever. (The benchmark numbers above remain the only
 figures that represent the tool.)
 
+## What this does not prove
+
+`ground()` re-attaches provenance to the **best-supported span** of a claim.
+Read a `grounded` verdict precisely:
+
+- **It covers `grounded_quote` — not every word of `original_quote`.** For a
+  `...`-joined quote the verdict is about the strongest fragment (AC3); the
+  other fragments may be entirely unsupported. A fabricated tail of ≤ 2
+  content tokens can also ride on a grounded head (the residual guard's
+  documented tolerance). Callers must present `grounded_quote` + URL as the
+  verified artifact — never the original claim text wholesale.
+- **It is not entailment.** Token overlap cannot see negation, hedging, or
+  reversal against a single matching sentence ("A causes B" vs "B causes A").
+  Proving a whole sentence true needs an entailment model — the deliberately
+  unshipped (future) NLI gate.
+- **It is not multi-hop fact-checking.** A claim that is true only via a chain
+  of inferences across documents will refuse — correctly, by these semantics.
+- **It does not vet the sources.** It maps a claim back into the curated set
+  it is handed; whether those sources are trustworthy is upstream's job.
+
+Where expressible, the mechanical limit behind each statement is encoded as a
+strict `xfail` in [`tests/test_limits.py`](tests/test_limits.py) — outgrowing
+one breaks the build until this section is consciously updated.
+
 ## Limits (honest)
 
 - **Synonym-heavy paraphrase over-refuses.** Token overlap cannot bridge a
@@ -223,6 +257,17 @@ figures that represent the tool.)
 - **Provenance uses a bounded window.** A citation more than `citation_window`
   sentences from the aligned span is treated as "too far" → unmapped (a safe
   refusal of attribution), by design.
+- **The tokenizer is ASCII/English-only.** Content tokens are `[a-z0-9]+` runs
+  with an English stop-word list. Exact quotes in other languages still match
+  (the verbatim-substring path is byte-faithful), but *paraphrase* alignment
+  for languages with diacritics is unreliable — "przekształca" fragments into
+  `przekszta` + `ca`-like stubs, degrading overlap in both directions. Treat
+  non-English paraphrase support as out of scope for the core.
+- **The sentence splitter is deliberately naive** (`.`/`!`/`?` + whitespace).
+  Abbreviations like "e.g." or "Dr." split a sentence in two, which shifts
+  sentence indices — and the citation window is *measured in sentences*, so a
+  marker can fall out of (or into) range. Suited to the clean, curated source
+  snippets the tool is designed for; not hardened against raw prose.
 
 ## The contract
 
